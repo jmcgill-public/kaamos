@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="James McGill">
+  <meta name="copyright" content="Copyright © McGill Enterprises 2026. All rights reserved.">
+  <title>Kaamos — The Game | James McGill</title>
+  <style>
+    /*
+     * KAAMOS DESIGN SYSTEM
+     * Color names are load-bearing. The Hiljaisuus pulse is 6.67s (0.15Hz).
+     * Do not change these values.
+     */
+
+    :root {
+      --void:        #070711;
+      --void-1:      #0c0c1a;
+      --void-2:      #12121f;
+      --void-3:      #1a1a2e;
+      --void-4:      #2a2a44;
+      --kaiku:       #c8a050;
+      --kaiku-mid:   #8a6030;
+      --kaiku-dim:   #5a4420;
+      --kaiku-ghost: #2a1e0a;
+      --hiljaisuus:  #8030c0;
+      --hiljaisuus-mid: #5020a0;
+      --hiljaisuus-dim: #3d1660;
+      --hiljaisuus-ghost: #1a0830;
+      --hehku:       #c85020;
+      --hehku-dim:   #6b2810;
+      --pohja:       #3030a0;
+      --pohja-dim:   #181850;
+      --asema:       #40c080;
+      --asema-dim:   #1a5035;
+      --text:        #e2ddd4;
+      --text-mid:    #a09890;
+      --muted:       #7a7890;
+      --muted-dim:   #404058;
+      --font-serif:  Georgia, 'Times New Roman', serif;
+      --font-sans:   system-ui, -apple-system, sans-serif;
+      --font-mono:   'Courier New', Courier, monospace;
+      --pulse-duration: 6.67s;
+      --transition-fast: 0.15s ease;
+      --transition-mid:  0.3s ease;
+      --radius-md:   4px;
+    }
+
+    @keyframes hiljaisuus-pulse {
+      0%, 100% { opacity: 0.3; }
+      50%       { opacity: 1.0; }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--void);
+      color: var(--text);
+      font-family: var(--font-serif);
+      font-size: 1.05rem;
+      line-height: 1.75;
+    }
+
+    /* ─────────────────────────────────────────────
+       HEADER / NAV
+       ───────────────────────────────────────────── */
+
+    .kaamos-nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(7,7,17,0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--void-3);
+      padding: 0.75rem 2rem;
+      display: flex; gap: 2rem; flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .kaamos-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: lowercase;
+      transition: color var(--transition-fast);
+    }
+    .kaamos-nav a:hover { color: var(--kaiku); }
+
+    .kaamos-nav .nav-title {
+      color: var(--kaiku);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      margin-right: auto;
+    }
+
+    /* ─────────────────────────────────────────────
+       HERO
+       ───────────────────────────────────────────── */
+
+    .hero {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-bottom: 1px solid var(--void-3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .logo-container {
+      width: 100%;
+      max-width: 280px;
+      animation: float 6.67s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .logo-container svg {
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 0 20px rgba(200,160,80,0.2));
+    }
+
+    .hero-text h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 8vw, 4rem);
+      font-weight: normal;
+      letter-spacing: 0.04em;
+      color: var(--kaiku);
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-text .subtitle {
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: lowercase;
+      margin-bottom: 1rem;
+    }
+
+    .hero-text .lede {
+      max-width: 520px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    /* ─────────────────────────────────────────────
+       GAME CONTAINER
+       ───────────────────────────────────────────── */
+
+    .game-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .game-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--kaiku);
+      display: block;
+    }
+
+    .game-instructions {
+      max-width: 540px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .game-instructions p { margin-bottom: 0.75rem; }
+
+    .game-canvas-wrapper {
+      background: var(--void-1);
+      border: 1px solid var(--void-3);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(128, 48, 192, 0.1);
+    }
+
+    canvas {
+      display: block;
+      cursor: pointer;
+      border-radius: 2px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    canvas.watching {
+      cursor: default;
+    }
+
+    .game-ui {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    #status {
+      font-size: 0.75rem;
+      color: var(--kaiku);
+      letter-spacing: 0.15em;
+      min-height: 1.2em;
+      text-align: center;
+      font-family: var(--font-mono);
+      text-transform: lowercase;
+    }
+
+    #sequence-display {
+      display: flex;
+      gap: 0.4rem;
+      min-height: 1.5rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .token {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--void-2);
+      border: 1px solid var(--void-3);
+      transition: all 0.15s ease;
+    }
+
+    .token.lit {
+      background: var(--kaiku);
+      border-color: var(--kaiku);
+      box-shadow: 0 0 8px var(--kaiku), 0 0 12px rgba(200,160,80,0.3);
+    }
+
+    /* ─────────────────────────────────────────────
+       CONTENT SECTION
+       ───────────────────────────────────────────── */
+
+    .content-section {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+      border-top: 1px solid var(--void-3);
+    }
+
+    .content-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--hiljaisuus);
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    .prose {
+      font-size: 1.05rem;
+      line-height: 1.9;
+    }
+
+    .prose p { margin-bottom: 1.25rem; }
+    .prose p:last-child { margin-bottom: 0; }
+    .prose em { color: var(--kaiku); font-style: italic; }
+    .prose strong {
+      color: var(--kaiku);
+      font-weight: normal;
+      font-family: var(--font-mono);
+      font-size: 0.9em;
+      letter-spacing: 0.05em;
+    }
+
+    .callout {
+      background: var(--void-1);
+      border: 1px solid var(--hiljaisuus-dim);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .callout-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--hiljaisuus);
+      display: block;
+      margin-bottom: 0.75rem;
+    }
+
+    .callout p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    /* ─────────────────────────────────────────────
+       FOOTER
+       ───────────────────────────────────────────── */
+
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--void-3);
+    }
+
+    footer a {
+      color: var(--kaiku);
+      text-decoration: none;
+    }
+
+    footer a:hover { color: var(--kaiku-mid); }
+
+    footer .sep { margin: 0 0.5rem; }
+
+    .license {
+      margin-top: 1rem;
+      color: var(--muted-dim);
+      font-size: 0.65rem;
+      line-height: 1.4;
+    }
+
+    /* ─────────────────────────────────────────────
+       RESPONSIVE
+       ───────────────────────────────────────────── */
+
+    @media (max-width: 600px) {
+      .kaamos-nav { gap: 1rem; padding: 0.5rem 1rem; }
+      .kaamos-nav .nav-title { font-size: 0.75rem; }
+      .hero { padding: 2rem 1.5rem; }
+      .hero-text h1 { font-size: 1.75rem; }
+      .game-section { padding: 2rem 1.5rem; }
+      .content-section { padding: 2rem 1.5rem; }
+      .game-canvas-wrapper { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="kaamos-nav">
+  <span class="nav-title">kaamos</span>
+  <a href="#game">play</a>
+  <a href="#about">about</a>
+  <a href="#license">license</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="logo-container">
+    <svg viewBox="0 0 240 248" xmlns="http://www.w3.org/2000/svg">
+      <title>kaamos</title>
+      <rect width="240" height="248" fill="#070711"/>
+      <g stroke="#c8a050" stroke-width="0.6" opacity="0.15">
+        <line x1="120" y1="118" x2="174" y2="118"/>
+        <line x1="120" y1="118" x2="158.2" y2="79.8"/>
+        <line x1="120" y1="118" x2="120" y2="64"/>
+        <line x1="120" y1="118" x2="81.8" y2="79.8"/>
+        <line x1="120" y1="118" x2="66" y2="118"/>
+        <line x1="120" y1="118" x2="81.8" y2="156.2"/>
+        <line x1="120" y1="118" x2="120" y2="172"/>
+        <line x1="120" y1="118" x2="158.2" y2="156.2"/>
+      </g>
+      <g fill="#c8a050" fill-opacity="0.07" stroke="#c8a050" stroke-width="1.8">
+        <polygon points="191,118 182.5,132.72 165.5,132.72 157,118 165.5,103.28 182.5,103.28"/>
+        <polygon points="175.2,79.8 166.7,94.52 149.7,94.52 141.2,79.8 149.7,65.08 166.7,65.08"/>
+        <polygon points="137,64 128.5,78.72 111.5,78.72 103,64 111.5,49.28 128.5,49.28"/>
+        <polygon points="98.8,79.8 90.3,94.52 73.3,94.52 64.8,79.8 73.3,65.08 90.3,65.08"/>
+        <polygon points="83,118 74.5,132.72 57.5,132.72 49,118 57.5,103.28 74.5,103.28"/>
+        <polygon points="98.8,156.2 90.3,170.92 73.3,170.92 64.8,156.2 73.3,141.48 90.3,141.48"/>
+        <polygon points="137,172 128.5,186.72 111.5,186.72 103,172 111.5,157.28 128.5,157.28"/>
+        <polygon points="175.2,156.2 166.7,170.92 149.7,170.92 141.2,156.2 149.7,141.48 166.7,141.48"/>
+      </g>
+      <g fill="#c8a050" opacity="0.75">
+        <circle cx="174" cy="118" r="2.5"/>
+        <circle cx="158.2" cy="79.8" r="2.5"/>
+        <circle cx="120" cy="64" r="2.5"/>
+        <circle cx="81.8" cy="79.8" r="2.5"/>
+        <circle cx="66" cy="118" r="2.5"/>
+        <circle cx="81.8" cy="156.2" r="2.5"/>
+        <circle cx="120" cy="172" r="2.5"/>
+        <circle cx="158.2" cy="156.2" r="2.5"/>
+      </g>
+      <polygon points="142,118 131,137.05 109,137.05 98,118 109,98.95 131,98.95"
+               fill="#8030c0" fill-opacity="0.18" stroke="#8030c0" stroke-width="1.8"/>
+      <circle cx="120" cy="118" r="4.5" fill="#8030c0" opacity="0.9"/>
+      <text x="120" y="222"
+            font-family="'Courier New', Courier, monospace"
+            font-size="20"
+            font-weight="bold"
+            fill="#c8a050"
+            text-anchor="middle"
+            letter-spacing="7">KAAMOS</text>
+      <line x1="52" y1="232" x2="188" y2="232" stroke="#c8a050" stroke-width="0.6" opacity="0.35"/>
+    </svg>
+  </div>
+
+  <div class="hero-text">
+    <h1>The Silence</h1>
+    <p class="subtitle">traces a path through the void</p>
+    <p class="lede">
+      A glyph-generating puzzle game that teaches you the language before you read about it.
+      Trace the sequences. Learn the topology. The Silence is always there.
+    </p>
+  </div>
+</section>
+
+<!-- GAME -->
+<section class="game-section" id="game">
+  <span class="game-label">play</span>
+
+  <div class="game-instructions">
+    <p><strong>Watch the hexes light up.</strong> Click them in the same order. Each level adds one more.</p>
+    <p>The <span style="color: var(--hiljaisuus);">violet center</span> is <em>Hiljaisuus</em> — the Silence. The <span style="color: var(--kaiku);">amber rings</span> are stations. You are routing hehku through the void.</p>
+  </div>
+
+  <div class="game-ui">
+    <div class="game-canvas-wrapper">
+      <canvas id="grid" width="540" height="540"></canvas>
+    </div>
+    <div id="status">initializing</div>
+    <div id="sequence-display"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="content-section" id="about">
+  <span class="content-label">about</span>
+
+  <div class="prose">
+    <p>
+      <strong>Kaamos</strong> is simultaneously a novel, a video game, a music project,
+      and a cosmological framework. They are not separate projects that share a name.
+      They are the same project in four registers.
+    </p>
+
+    <p>
+      The novel follows <em>Eerikki</em> (Edgar), who caused a cosmological disruption
+      and is genuinely trying to fix it while making it worse for everyone except himself.
+      The game teaches you the novel's language and cosmology without announcing that it's
+      doing so.
+    </p>
+
+    <p>
+      The universe consists of branes separated by the void. The void has no spacetime
+      but it has structure. The structure is navigable. The navigation is the game.
+      <span style="color: var(--hiljaisuus);">Hiljaisuus</span> — the Silence, Station 9 — sits at the center
+      of the Expanse, a fold in the brane topology that is always present.
+    </p>
+
+    <div class="callout">
+      <span class="callout-label">Dual Correctness</span>
+      <p>
+        Two truths collide. Both are valid. Neither resolves. No synthesis.
+        The collision <em>is</em> the meaning. This is not a theme. It is the load-bearing structure.
+      </p>
+    </div>
+
+    <p>
+      This is the skeleton of that universe in playable form. It teaches by doing.
+      No explanation. Just the Silence, drawing something. You color it in.
+    </p>
+  </div>
+</section>
+
+<!-- LICENSE -->
+<footer id="license">
+  <div>
+    <a href="https://github.com/jmcgill-public/kaamos">source</a>
+    <span class="sep">—</span>
+    <span>James McGill</span>
+    <span class="sep">—</span>
+    <span>McGill Enterprises</span>
+  </div>
+  <div class="license">
+    Copyright © McGill Enterprises 2026. All rights reserved.<br>
+    Licensed under <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International (CC BY 4.0)</a>.
+    You are free to use, modify, and distribute this work with attribution.
+  </div>
+</footer>
+
+<script>
+// ─── HEX MATH ─────────────────────────────────────────────────────────────
+
+const HEX_DIRECTIONS = [
+  {q:1,r:-1,s:0}, {q:1,r:0,s:-1}, {q:0,r:1,s:-1},
+  {q:-1,r:1,s:0}, {q:-1,r:0,s:1}, {q:0,r:-1,s:1}
+];
+
+function hexAdd(a, b) { return {q:a.q+b.q, r:a.r+b.r, s:a.s+b.s}; }
+function hexDistance(a, b) {
+  return Math.max(Math.abs(a.q-b.q), Math.abs(a.r-b.r), Math.abs(a.s-b.s));
+}
+function hexKey(h) { return `${h.q},${h.r},${h.s}`; }
+
+function hexToPixel(h, size, origin) {
+  const x = size * (3/2 * h.q);
+  const y = size * (Math.sqrt(3)/2 * h.q + Math.sqrt(3) * h.r);
+  return { x: origin.x + x, y: origin.y + y };
+}
+
+function pixelToHex(px, py, size, origin) {
+  const x = (px - origin.x) / size;
+  const y = (py - origin.y) / size;
+  const q = (2/3) * x;
+  const r = (-1/3) * x + (Math.sqrt(3)/3) * y;
+  const s = -q - r;
+  return hexRound({q, r, s});
+}
+
+function hexRound(h) {
+  let q = Math.round(h.q), r = Math.round(h.r), s = Math.round(h.s);
+  const dq = Math.abs(q - h.q), dr = Math.abs(r - h.r), ds = Math.abs(s - h.s);
+  if (dq > dr && dq > ds) q = -r - s;
+  else if (dr > ds) r = -q - s;
+  else s = -q - r;
+  return {q, r, s};
+}
+
+function hexNeighbors(h) {
+  return HEX_DIRECTIONS.map(d => hexAdd(h, d));
+}
+
+// ─── PATHFINDING ──────────────────────────────────────────────────────────
+
+function bfsPath(start, end, validHexes) {
+  const startKey = hexKey(start);
+  const endKey = hexKey(end);
+  if (startKey === endKey) return [start];
+
+  const queue = [[start]];
+  const visited = new Set([startKey]);
+
+  while (queue.length > 0) {
+    const path = queue.shift();
+    const current = path[path.length - 1];
+    for (const neighbor of hexNeighbors(current)) {
+      const nKey = hexKey(neighbor);
+      if (nKey === endKey) return [...path, neighbor];
+      if (!visited.has(nKey) && validHexes.has(nKey)) {
+        visited.add(nKey);
+        queue.push([...path, neighbor]);
+      }
+    }
+  }
+  return [start, end];
+}
+
+// ─── MAP ───────────────────────────────────────────────────────────────────
+
+const HILJAISUUS = {q:0, r:0, s:0};
+const STATION_NAMES = [
+  'Pohja', 'Väylä', 'Grilli', 'Kaamos', 'Aava', 'Hehku',
+  'Solmu', 'Pohjanmeri', 'Taivas'
+];
+
+const STATION_HEXES = [
+  {q:2,  r:-1, s:-1},
+  {q:1,  r:-2, s:1},
+  {q:-1, r:-1, s:2},
+  {q:-2, r:1,  s:1},
+  {q:-1, r:2,  s:-1},
+  {q:1,  r:1,  s:-2},
+  {q:2,  r:-2, s:0},
+  {q:0,  r:-2, s:2},
+  {q:-2, r:0,  s:2},
+];
+
+const stations = {};
+STATION_HEXES.forEach((hex, i) => {
+  const key = hexKey(hex);
+  stations[key] = { hex, name: STATION_NAMES[i], index: i };
+});
+
+const stationList = Object.values(stations);
+
+const allHexes = new Set();
+allHexes.add(hexKey(HILJAISUUS));
+stationList.forEach(s => allHexes.add(hexKey(s.hex)));
+
+for (let q = -2; q <= 2; q++) {
+  for (let r = -2; r <= 2; r++) {
+    const s = -q - r;
+    if (Math.abs(s) <= 2) allHexes.add(hexKey({q,r,s}));
+  }
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────
+
+const STATE = {
+  phase: 'idle',
+  bossSequence: [],
+  bossStep: 0,
+  highlightedHex: null,
+  pathTrail: [],
+  tokens: [],
+};
+
+let playerStation = stationList[Math.floor(Math.random() * stationList.length)];
+
+// ─── CANVAS ───────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('grid');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const ORIGIN = { x: W/2, y: H/2 };
+const HEX_SIZE = 44;
+
+// ─── DRAW ─────────────────────────────────────────────────────────────────
+
+function hexCorners(center, size) {
+  const corners = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i);
+    corners.push({
+      x: center.x + size * Math.cos(angle),
+      y: center.y + size * Math.sin(angle)
+    });
+  }
+  return corners;
+}
+
+function drawHex(hex, opts = {}) {
+  const center = hexToPixel(hex, HEX_SIZE, ORIGIN);
+  const corners = hexCorners(center, HEX_SIZE - 2);
+
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < 6; i++) ctx.lineTo(corners[i].x, corners[i].y);
+  ctx.closePath();
+
+  ctx.fillStyle = opts.fill || '#0d0d1f';
+  ctx.fill();
+  ctx.strokeStyle = opts.stroke || '#1a1a3a';
+  ctx.lineWidth = opts.lineWidth || 1;
+  ctx.stroke();
+}
+
+function drawTrail() {
+  if (STATE.pathTrail.length < 2) return;
+  ctx.save();
+  for (let i = 1; i < STATE.pathTrail.length; i++) {
+    const a = hexToPixel(STATE.pathTrail[i-1], HEX_SIZE, ORIGIN);
+    const b = hexToPixel(STATE.pathTrail[i], HEX_SIZE, ORIGIN);
+    const alpha = Math.min(1, 0.1 + (i / STATE.pathTrail.length) * 0.5);
+    ctx.strokeStyle = `rgba(128, 48, 192, ${alpha})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  allHexes.forEach(key => {
+    const parts = key.split(',').map(Number);
+    const hex = {q:parts[0], r:parts[1], s:parts[2]};
+    drawHex(hex);
+  });
+
+  drawTrail();
+
+  const bossPulse = 0.5 + 0.5 * Math.sin(Date.now() / 6670);
+  drawHex(HILJAISUUS, {
+    fill: `rgba(20, 0, 40, ${0.8 + bossPulse * 0.2})`,
+    stroke: `rgba(128, 48, 192, ${0.4 + bossPulse * 0.6})`,
+    lineWidth: 2.5
+  });
+
+  const bossCenter = hexToPixel(HILJAISUUS, HEX_SIZE, ORIGIN);
+  ctx.fillStyle = `rgba(128, 48, 192, ${0.3 + bossPulse * 0.5})`;
+  ctx.font = '9px Courier New';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('hiljaisuus', bossCenter.x, bossCenter.y);
+
+  stationList.forEach(s => {
+    const isHighlighted = STATE.highlightedHex &&
+      hexKey(STATE.highlightedHex) === hexKey(s.hex);
+    const isPlayer = hexKey(playerStation.hex) === hexKey(s.hex);
+
+    let fill = '#0e0e22';
+    let stroke = '#252550';
+
+    if (isHighlighted) {
+      fill = '#3a3a6a';
+      stroke = '#c8a050';
+    } else if (isPlayer) {
+      fill = '#1a1a3a';
+      stroke = '#40c080';
+    }
+
+    drawHex(s.hex, { fill, stroke, lineWidth: isHighlighted || isPlayer ? 2 : 1 });
+
+    const center = hexToPixel(s.hex, HEX_SIZE, ORIGIN);
+    ctx.fillStyle = isHighlighted ? '#c8a050' : isPlayer ? '#40c080' : '#5a5a8a';
+    ctx.font = '8px Courier New';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.name.slice(0, 3), center.x, center.y);
+  });
+
+  requestAnimationFrame(render);
+}
+
+// ─── GAME LOGIC ────────────────────────────────────────────────────────────
+
+function startRound() {
+  STATE.phase = 'boss_pointing';
+  STATE.bossStep = 0;
+  STATE.highlightedHex = null;
+
+  const stations = stationList;
+  const destination = stations[Math.floor(Math.random() * stations.length)];
+  STATE.bossSequence.push(destination.hex);
+  
+  updateStatus('watching...');
+  canvas.classList.add('watching');
+  playSequence();
+}
+
+function playSequence() {
+  const delay = 600;
+  const highlightDuration = 200;
+
+  let step = 0;
+  function showStep() {
+    if (step >= STATE.bossSequence.length) {
+      STATE.phase = 'player_input';
+      STATE.highlightedHex = null;
+      canvas.classList.remove('watching');
+      updateStatus('your turn');
+      return;
+    }
+
+    STATE.highlightedHex = STATE.bossSequence[step];
+    setTimeout(() => { STATE.highlightedHex = null; }, highlightDuration);
+    step++;
+    setTimeout(showStep, delay);
+  }
+
+  showStep();
+}
+
+function updateStatus(text) {
+  document.getElementById('status').textContent = text;
+}
+
+function updateSequenceDisplay() {
+  const container = document.getElementById('sequence-display');
+  container.innerHTML = '';
+  STATE.tokens.forEach(() => {
+    const el = document.createElement('div');
+    el.className = 'token lit';
+    container.appendChild(el);
+  });
+}
+
+canvas.addEventListener('click', (e) => {
+  if (STATE.phase !== 'player_input') return;
+
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const hex = pixelToHex(x, y, HEX_SIZE, ORIGIN);
+
+  let clickedStation = null;
+  for (const s of stationList) {
+    if (hexKey(s.hex) === hexKey(hex)) {
+      clickedStation = s.hex;
+      break;
+    }
+  }
+
+  if (!clickedStation) return;
+
+  const trailPath = bfsPath(playerStation.hex, clickedStation, allHexes);
+  STATE.pathTrail.push(...trailPath);
+  playerStation = { hex: clickedStation };
+
+  if (hexKey(clickedStation) === hexKey(STATE.bossSequence[STATE.tokens.length])) {
+    STATE.tokens.push(1);
+    updateSequenceDisplay();
+    updateStatus(`token ${STATE.tokens.length}`);
+
+    if (STATE.tokens.length === STATE.bossSequence.length) {
+      STATE.phase = 'idle';
+      canvas.classList.add('watching');
+      updateStatus('next round...');
+      setTimeout(startRound, 1200);
+    }
+  } else {
+    STATE.phase = 'idle';
+    updateStatus('disruption');
+    setTimeout(() => {
+      STATE.tokens = [];
+      STATE.pathTrail = [];
+      playerStation = stationList[Math.floor(Math.random() * stationList.length)];
+      updateSequenceDisplay();
+      startRound();
+    }, 1500);
+  }
+});
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+
+updateStatus('ready');
+render();
+
+setTimeout(startRound, 500);
+</script>
+
+</body>
+</html>
