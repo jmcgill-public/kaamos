@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="James McGill">
+  <meta name="copyright" content="Copyright © McGill Enterprises 2026. All rights reserved.">
+  <title>Kaamos — Turo</title>
+  <style>
+    :root {
+      --void:        #070711;
+      --void-1:      #0c0c1a;
+      --void-2:      #12121f;
+      --void-3:      #1a1a2e;
+      --void-4:      #2a2a44;
+      --kaiku:       #c8a050;
+      --kaiku-mid:   #8a6030;
+      --kaiku-dim:   #5a4420;
+      --kaiku-ghost: #2a1e0a;
+      --hiljaisuus:  #8030c0;
+      --hehku:       #c85020;
+      --asema:       #40c080;
+      --text:        #e2ddd4;
+      --muted:       #7a7890;
+      --font-mono:   'Courier New', Courier, monospace;
+      --pulse-duration: 6.67s;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--void);
+      color: var(--kaiku);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      width: 100%;
+      max-width: 680px;
+      border-bottom: 1px solid var(--void-3);
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .header-title {
+      font-size: 0.75rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--kaiku);
+    }
+
+    .header-sub {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── WOF BOARD ── */
+    .wof-section {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 2rem;
+    }
+
+    .wof-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .wof-board {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .wof-tile {
+      width: 72px;
+      height: 72px;
+      border: 1px solid var(--void-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      background: var(--void-1);
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .wof-tile.revealed {
+      border-color: var(--kaiku-mid);
+      background: var(--kaiku-ghost);
+      color: var(--kaiku);
+    }
+
+    .wof-tile.revealed .tile-name {
+      font-size: 0.75rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+    }
+
+    .wof-tile .tile-pos {
+      font-size: 0.55rem;
+      color: var(--muted);
+      position: absolute;
+      top: 4px;
+      left: 6px;
+      opacity: 0.5;
+    }
+
+    .wof-tile .tile-blank {
+      font-size: 1.5rem;
+      color: var(--void-4);
+    }
+
+    .wof-solve-btn {
+      background: none;
+      border: 1px solid var(--void-4);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-top: 0.75rem;
+    }
+
+    .wof-solve-btn:hover:not(:disabled) {
+      border-color: var(--kaiku-mid);
+      color: var(--kaiku);
+    }
+
+    .wof-solve-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* ── TERMINAL / SCROLL ── */
+    .terminal {
+      width: 100%;
+      max-width: 680px;
+      background: var(--void-1);
+      border: 1px solid var(--void-3);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      min-height: 220px;
+      max-height: 340px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .terminal-line {
+      margin-bottom: 0.2rem;
+      white-space: pre;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    .terminal-line.dim    { color: var(--muted); }
+    .terminal-line.bright { color: var(--kaiku); }
+    .terminal-line.hit    { color: var(--asema); }
+    .terminal-line.miss   { color: var(--hehku); }
+    .terminal-line.violet { color: var(--hiljaisuus); }
+    .terminal-line.win    { color: var(--asema); font-weight: bold; }
+    .terminal-line.lose   { color: var(--hehku); }
+
+    /* ── INPUT AREA ── */
+    .input-section {
+      width: 100%;
+      max-width: 680px;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    /* current guess display */
+    .guess-display {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .guess-slot {
+      width: 60px;
+      height: 44px;
+      border: 1px solid var(--void-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: var(--muted);
+      background: var(--void-1);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .guess-slot.filled {
+      border-color: var(--kaiku-dim);
+      background: var(--kaiku-ghost);
+      color: var(--kaiku);
+    }
+
+    .guess-slot.filled:hover {
+      border-color: var(--hehku);
+      color: var(--hehku);
+    }
+
+    .guess-slot .slot-name {
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+    }
+
+    .guess-sep {
+      color: var(--void-4);
+      font-size: 0.8rem;
+    }
+
+    /* station buttons */
+    .station-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .station-btn {
+      background: var(--void-1);
+      border: 1px solid var(--void-3);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      padding: 0.4rem 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+      min-width: 72px;
+      text-align: center;
+    }
+
+    .station-btn:hover:not(:disabled) {
+      border-color: var(--kaiku-mid);
+      color: var(--kaiku);
+      background: var(--kaiku-ghost);
+    }
+
+    .station-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* action buttons */
+    .action-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .action-btn {
+      background: none;
+      border: 1px solid var(--void-4);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .action-btn.primary {
+      border-color: var(--kaiku-dim);
+      color: var(--kaiku);
+    }
+
+    .action-btn.primary:hover:not(:disabled) {
+      background: var(--kaiku-ghost);
+    }
+
+    .action-btn:hover:not(:disabled) {
+      border-color: var(--void-3);
+      color: var(--text);
+    }
+
+    .action-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    /* ── STATUS BAR ── */
+    .status-bar {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      border-top: 1px solid var(--void-3);
+      padding-top: 0.75rem;
+    }
+
+    .status-bar .guesses-left {
+      color: var(--kaiku);
+    }
+
+    /* ── DISCARD PILE ── */
+    .discard-section {
+      width: 100%;
+      max-width: 680px;
+      margin-top: 1.5rem;
+    }
+
+    .discard-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .discard-pile {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      min-height: 1.5rem;
+    }
+
+    .discard-token {
+      font-size: 0.65rem;
+      color: var(--void-4);
+      border: 1px solid var(--void-3);
+      padding: 0.15rem 0.4rem;
+      text-decoration: line-through;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SOLVE MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(7,7,17,0.92);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--void-1);
+      border: 1px solid var(--void-3);
+      padding: 2rem;
+      max-width: 480px;
+      width: 90%;
+    }
+
+    .modal-title {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--hiljaisuus);
+      margin-bottom: 1rem;
+    }
+
+    .modal-prompt {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.7;
+    }
+
+    .modal-guess-row {
+      display: flex;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-slot {
+      width: 64px;
+      height: 44px;
+      border: 1px solid var(--void-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--void);
+    }
+
+    .modal-slot.filled {
+      border-color: var(--kaiku-dim);
+      color: var(--kaiku);
+    }
+
+    .modal-station-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-station-btn {
+      background: var(--void);
+      border: 1px solid var(--void-3);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      padding: 0.35rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-transform: uppercase;
+      min-width: 64px;
+      text-align: center;
+    }
+
+    .modal-station-btn:hover {
+      border-color: var(--kaiku-mid);
+      color: var(--kaiku);
+    }
+
+    .modal-station-btn.locked {
+      border-color: var(--asema);
+      color: var(--asema);
+      cursor: default;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .modal-btn {
+      background: none;
+      border: 1px solid var(--void-4);
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .modal-btn.commit {
+      border-color: var(--hiljaisuus);
+      color: var(--hiljaisuus);
+    }
+
+    .modal-btn.commit:hover:not(:disabled) {
+      background: rgba(128,48,192,0.1);
+    }
+
+    .modal-btn:hover:not(:disabled) {
+      border-color: var(--void-3);
+      color: var(--text);
+    }
+
+    .modal-btn:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    @keyframes hiljaisuus-pulse {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 1.0; }
+    }
+
+    .pulse {
+      animation: hiljaisuus-pulse var(--pulse-duration) ease-in-out infinite;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <span class="header-title pulse">turo</span>
+  <span class="header-sub">pattern recognition / deduction engine</span>
+</div>
+
+<!-- WOF BOARD -->
+<div class="wof-section">
+  <div class="wof-label">the silence has chosen</div>
+  <div class="wof-board" id="wof-board"></div>
+  <button class="wof-solve-btn" id="solve-btn" onclick="openSolveModal()">
+    attempt solve
+  </button>
+</div>
+
+<!-- TERMINAL -->
+<div class="terminal" id="terminal"></div>
+
+<!-- INPUT -->
+<div class="input-section">
+  <div class="input-label">probe</div>
+
+  <div class="guess-display" id="guess-display"></div>
+
+  <div class="station-grid" id="station-grid"></div>
+
+  <div class="action-row">
+    <button class="action-btn primary" id="submit-btn" onclick="submitGuess()" disabled>
+      transmit probe
+    </button>
+    <button class="action-btn" id="clear-btn" onclick="clearGuess()" disabled>
+      clear
+    </button>
+    <button class="action-btn" onclick="newGame()">
+      new sequence
+    </button>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="status-bar">
+  <span>kaamos mastermind — turo build 0.1</span>
+  <span class="guesses-left" id="guesses-left"></span>
+</div>
+
+<!-- DISCARD PILE -->
+<div class="discard-section">
+  <div class="discard-label">void set — confirmed absent</div>
+  <div class="discard-pile" id="discard-pile"></div>
+</div>
+
+<!-- SOLVE MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">solve attempt</div>
+    <div class="modal-prompt">
+      Name all four stations in order.<br>
+      One shot. The silence is watching.
+    </div>
+    <div class="modal-guess-row" id="modal-slots"></div>
+    <div class="modal-station-grid" id="modal-station-grid"></div>
+    <div class="modal-actions">
+      <button class="modal-btn commit" id="modal-commit-btn"
+              onclick="commitSolve()" disabled>commit</button>
+      <button class="modal-btn" onclick="closeSolveModal()">withdraw</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATIONS ────────────────────────────────────────────────────────────────
+
+const STATIONS = [
+  { id: 0, key: 'POH', name: 'Pohja'     },
+  { id: 1, key: 'VÄY', name: 'Väylä'     },
+  { id: 2, key: 'GRI', name: 'Grilli'    },
+  { id: 3, key: 'KAA', name: 'Kaamos'    },
+  { id: 4, key: 'AAV', name: 'Aava'      },
+  { id: 5, key: 'HEH', name: 'Hehku'     },
+  { id: 6, key: 'SOL', name: 'Solmu'     },
+  { id: 7, key: 'TAI', name: 'Taivas'    },
+];
+
+const CODE_LEN   = 4;
+const MAX_PROBES = 10;
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+
+let state = {
+  code:        [],   // hidden code [station ids]
+  currentGuess:[],   // player's building guess
+  probeHistory:[],   // [{guess, exact, present}]
+  revealed:    [],   // boolean[CODE_LEN] — exact reveals
+  absentSet:   new Set(), // station ids confirmed 100% absent
+  gameOver:    false,
+};
+
+// ── GAME LOGIC ───────────────────────────────────────────────────────────────
+
+function newGame() {
+  const code = [];
+  for (let i = 0; i < CODE_LEN; i++) {
+    code.push(Math.floor(Math.random() * STATIONS.length));
+  }
+  state = {
+    code,
+    currentGuess: [],
+    probeHistory:  [],
+    revealed:      Array(CODE_LEN).fill(false),
+    absentSet:     new Set(),
+    gameOver:      false,
+  };
+  clearTerminal();
+  printLine('TURO SEQUENCE INITIALISED.', 'violet');
+  printLine('THE SILENCE HAS ENCODED A ROUTE.', 'dim');
+  printLine('PROBE THE PATTERN. DEDUCE THE CODE.', 'dim');
+  printLine('', 'dim');
+  printLine(`ALPHABET  : ${STATIONS.map(s => s.key).join('  ')}`, 'dim');
+  printLine(`CODE LEN  : ${CODE_LEN}`, 'dim');
+  printLine(`PROBES    : ${MAX_PROBES}`, 'dim');
+  printLine('', 'dim');
+  printLine('● = EXACT (right station, right position)', 'dim');
+  printLine('○ = PRESENT (right station, wrong position)', 'dim');
+  printLine('_ = ABSENT', 'dim');
+  printLine('', 'dim');
+  printLine('READY.', 'bright');
+  printLine('', 'dim');
+
+  renderWoF();
+  renderGuessDisplay();
+  renderStationButtons();
+  renderDiscardPile();
+  updateStatus();
+}
+
+function evaluate(guess, code) {
+  // Returns {exact, present} counts — classic Mastermind scoring
+  const exact   = [];
+  const present = [];
+
+  const codeLeft  = [];
+  const guessLeft = [];
+
+  for (let i = 0; i < CODE_LEN; i++) {
+    if (guess[i] === code[i]) {
+      exact.push(i);
+    } else {
+      codeLeft.push(code[i]);
+      guessLeft.push(guess[i]);
+    }
+  }
+
+  for (const g of guessLeft) {
+    const idx = codeLeft.indexOf(g);
+    if (idx !== -1) {
+      present.push(g);
+      codeLeft.splice(idx, 1);
+    }
+  }
+
+  return { exact, present };
+}
+
+function submitGuess() {
+  if (state.gameOver) return;
+  if (state.currentGuess.length !== CODE_LEN) return;
+
+  const guess  = [...state.currentGuess];
+  const result = evaluate(guess, state.code);
+
+  state.probeHistory.push({ guess, ...result });
+
+  // Update revealed positions
+  result.exact.forEach(i => { state.revealed[i] = true; });
+
+  // Update absent set — stations not in code at all
+  // A station is confirmed absent only if exact=0 and present=0 for all occurrences
+  updateAbsentSet(guess, result);
+
+  // Print to terminal
+  const probeNum = String(state.probeHistory.length).padStart(2, '0');
+  const guessStr = guess.map(id => STATIONS[id].key).join('  ');
+  const exactStr  = result.exact.length;
+  const presentStr= result.present.length;
+
+  const indicators = guess.map((id, i) => {
+    if (result.exact.includes(i)) return '●';
+    if (result.present.includes(id) ||
+        guess.filter((g,j)=>g===id&&j!==i).length < result.present.filter(p=>p===id).length+1)
+      return '○';
+    return '_';
+  });
+  // Simpler indicator: build position by position
+  const ind = buildIndicators(guess, result);
+
+  printLine(`PROBE ${probeNum}:  ${guessStr}`, 'bright');
+  printLine(`RESULT  :  ${ind.join('  ')}   [${exactStr}● ${presentStr}○]`,
+            exactStr === CODE_LEN ? 'win' : 'dim');
+  printLine('', 'dim');
+
+  state.currentGuess = [];
+  renderWoF();
+  renderGuessDisplay();
+  renderStationButtons();
+  renderDiscardPile();
+  updateStatus();
+
+  if (exactStr === CODE_LEN) {
+    win();
+  } else if (state.probeHistory.length >= MAX_PROBES) {
+    lose();
+  }
+}
+
+function buildIndicators(guess, result) {
+  // Build per-position indicators correctly
+  const ind = Array(CODE_LEN).fill('_');
+  const codeLeft  = [];
+  const guessLeft = [];
+  const guessLeftIdx = [];
+
+  for (let i = 0; i < CODE_LEN; i++) {
+    if (guess[i] === state.code[i]) {
+      ind[i] = '●';
+    } else {
+      codeLeft.push(state.code[i]);
+      guessLeft.push(guess[i]);
+      guessLeftIdx.push(i);
+    }
+  }
+
+  for (let j = 0; j < guessLeft.length; j++) {
+    const g = guessLeft[j];
+    const idx = codeLeft.indexOf(g);
+    if (idx !== -1) {
+      ind[guessLeftIdx[j]] = '○';
+      codeLeft.splice(idx, 1);
+    }
+  }
+
+  return ind;
+}
+
+function updateAbsentSet(guess, result) {
+  // If a station appears in the guess and contributes neither exact nor present,
+  // it's confirmed absent — but only if we account for multiples carefully.
+  const exactCount   = {};
+  const presentCount = {};
+
+  result.exact.forEach(i => {
+    const id = guess[i];
+    exactCount[id] = (exactCount[id] || 0) + 1;
+  });
+  result.present.forEach(id => {
+    presentCount[id] = (presentCount[id] || 0) + 1;
+  });
+
+  const guessCount = {};
+  guess.forEach(id => { guessCount[id] = (guessCount[id] || 0) + 1; });
+
+  for (const [idStr, count] of Object.entries(guessCount)) {
+    const id = Number(idStr);
+    const matched = (exactCount[id] || 0) + (presentCount[id] || 0);
+    if (matched === 0) {
+      // This station is entirely absent from the code
+      state.absentSet.add(id);
+    }
+  }
+}
+
+function win() {
+  state.gameOver = true;
+  printLine('', 'dim');
+  printLine('ACCESS GRANTED.', 'win');
+  printLine('THE ROUTE IS CONFIRMED.', 'win');
+  printLine('', 'dim');
+  revealAll();
+  disableInput();
+}
+
+function lose() {
+  state.gameOver = true;
+  const codeStr = state.code.map(id => STATIONS[id].key).join('  ');
+  printLine('', 'dim');
+  printLine('PROBE LIMIT REACHED.', 'lose');
+  printLine(`THE CODE WAS:  ${codeStr}`, 'lose');
+  printLine('', 'dim');
+  revealAll();
+  disableInput();
+}
+
+function revealAll() {
+  state.revealed = Array(CODE_LEN).fill(true);
+  renderWoF();
+}
+
+function disableInput() {
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('clear-btn').disabled  = true;
+  document.getElementById('solve-btn').disabled  = true;
+  document.querySelectorAll('.station-btn').forEach(b => b.disabled = true);
+}
+
+// ── SOLVE MODAL ──────────────────────────────────────────────────────────────
+
+let modalGuess = [];
+
+function openSolveModal() {
+  if (state.gameOver) return;
+  modalGuess = Array(CODE_LEN).fill(null);
+
+  // Pre-fill revealed positions
+  for (let i = 0; i < CODE_LEN; i++) {
+    if (state.revealed[i]) modalGuess[i] = state.code[i];
+  }
+
+  renderModalSlots();
+  renderModalStationGrid();
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeSolveModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+  modalGuess = [];
+}
+
+function renderModalSlots() {
+  const container = document.getElementById('modal-slots');
+  container.innerHTML = '';
+  for (let i = 0; i < CODE_LEN; i++) {
+    const div = document.createElement('div');
+    div.className = 'modal-slot' + (modalGuess[i] !== null ? ' filled' : '');
+    if (state.revealed[i]) {
+      div.textContent = STATIONS[state.code[i]].key;
+      div.style.borderColor = 'var(--asema)';
+      div.style.color = 'var(--asema)';
+    } else if (modalGuess[i] !== null) {
+      div.textContent = STATIONS[modalGuess[i]].key;
+      div.onclick = () => { modalGuess[i] = null; renderModalSlots(); renderModalStationGrid(); updateModalCommit(); };
+    } else {
+      div.textContent = '—';
+    }
+    container.appendChild(div);
+  }
+}
+
+function renderModalStationGrid() {
+  const container = document.getElementById('modal-station-grid');
+  container.innerHTML = '';
+  STATIONS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'modal-station-btn';
+    btn.textContent = s.key;
+
+    // Check if any non-revealed slot still needs this
+    const nextSlot = modalGuess.findIndex((v, i) => v === null && !state.revealed[i]);
+    if (nextSlot === -1) {
+      btn.disabled = true;
+    } else {
+      btn.onclick = () => {
+        const slot = modalGuess.findIndex((v, i) => v === null && !state.revealed[i]);
+        if (slot !== -1) {
+          modalGuess[slot] = s.id;
+          renderModalSlots();
+          renderModalStationGrid();
+          updateModalCommit();
+        }
+      };
+    }
+    container.appendChild(btn);
+  });
+}
+
+function updateModalCommit() {
+  const complete = modalGuess.every(v => v !== null);
+  document.getElementById('modal-commit-btn').disabled = !complete;
+}
+
+function commitSolve() {
+  if (modalGuess.some(v => v === null)) return;
+  closeSolveModal();
+
+  const guess  = [...modalGuess];
+  const isWin  = guess.every((id, i) => id === state.code[i]);
+  const probeNum = String(state.probeHistory.length + 1).padStart(2, '0');
+  const guessStr = guess.map(id => STATIONS[id].key).join('  ');
+
+  state.probeHistory.push({ guess, exact: [], present: [], isSolveAttempt: true });
+  state.gameOver = true;
+
+  printLine(`SOLVE ${probeNum}:  ${guessStr}`, 'violet');
+
+  if (isWin) {
+    printLine('', 'dim');
+    printLine('...', 'violet');
+    printLine('', 'dim');
+    printLine('ACCESS GRANTED.', 'win');
+    state.revealed = Array(CODE_LEN).fill(true);
+  } else {
+    const codeStr = state.code.map(id => STATIONS[id].key).join('  ');
+    printLine('', 'dim');
+    printLine('INCORRECT.', 'lose');
+    printLine(`THE CODE WAS:  ${codeStr}`, 'lose');
+    state.revealed = Array(CODE_LEN).fill(true);
+  }
+
+  printLine('', 'dim');
+  renderWoF();
+  disableInput();
+  updateStatus();
+}
+
+// ── GUESS BUILDING ────────────────────────────────────────────────────────────
+
+function addToGuess(stationId) {
+  if (state.gameOver) return;
+  if (state.currentGuess.length >= CODE_LEN) return;
+  state.currentGuess.push(stationId);
+  renderGuessDisplay();
+  renderStationButtons();
+  document.getElementById('submit-btn').disabled = state.currentGuess.length < CODE_LEN;
+  document.getElementById('clear-btn').disabled  = state.currentGuess.length === 0;
+}
+
+function removeFromGuess(idx) {
+  if (state.gameOver) return;
+  state.currentGuess.splice(idx, 1);
+  renderGuessDisplay();
+  renderStationButtons();
+  document.getElementById('submit-btn').disabled = state.currentGuess.length < CODE_LEN;
+  document.getElementById('clear-btn').disabled  = state.currentGuess.length === 0;
+}
+
+function clearGuess() {
+  state.currentGuess = [];
+  renderGuessDisplay();
+  renderStationButtons();
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('clear-btn').disabled  = true;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+
+function renderWoF() {
+  const board = document.getElementById('wof-board');
+  board.innerHTML = '';
+  for (let i = 0; i < CODE_LEN; i++) {
+    const tile = document.createElement('div');
+    tile.className = 'wof-tile';
+    const pos = document.createElement('span');
+    pos.className = 'tile-pos';
+    pos.textContent = i + 1;
+    tile.appendChild(pos);
+
+    if (state.revealed[i]) {
+      tile.classList.add('revealed');
+      const name = document.createElement('span');
+      name.className = 'tile-name';
+      name.textContent = STATIONS[state.code[i]].key;
+      tile.appendChild(name);
+      const full = document.createElement('span');
+      full.style.fontSize = '0.55rem';
+      full.style.color = 'var(--kaiku-mid)';
+      full.style.marginTop = '2px';
+      full.textContent = STATIONS[state.code[i]].name;
+      tile.appendChild(full);
+    } else {
+      const blank = document.createElement('span');
+      blank.className = 'tile-blank';
+      blank.textContent = '▒';
+      tile.appendChild(blank);
+    }
+    board.appendChild(tile);
+  }
+}
+
+function renderGuessDisplay() {
+  const container = document.getElementById('guess-display');
+  container.innerHTML = '';
+  for (let i = 0; i < CODE_LEN; i++) {
+    if (i > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'guess-sep';
+      sep.textContent = '·';
+      container.appendChild(sep);
+    }
+    const slot = document.createElement('div');
+    slot.className = 'guess-slot';
+    if (i < state.currentGuess.length) {
+      slot.classList.add('filled');
+      const id = state.currentGuess[i];
+      const nameEl = document.createElement('span');
+      nameEl.className = 'slot-name';
+      nameEl.textContent = STATIONS[id].key;
+      slot.appendChild(nameEl);
+      const ii = i;
+      slot.title = 'click to remove';
+      slot.onclick = () => removeFromGuess(ii);
+    } else {
+      slot.textContent = '—';
+    }
+    container.appendChild(slot);
+  }
+}
+
+function renderStationButtons() {
+  const grid = document.getElementById('station-grid');
+  grid.innerHTML = '';
+  STATIONS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'station-btn';
+    btn.textContent = `${s.key} ${s.name}`;
+
+    const isAbsent = state.absentSet.has(s.id);
+    if (isAbsent) {
+      btn.style.textDecoration = 'line-through';
+      btn.style.opacity = '0.3';
+    }
+
+    if (state.gameOver || state.currentGuess.length >= CODE_LEN) {
+      btn.disabled = true;
+    } else {
+      btn.onclick = () => addToGuess(s.id);
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function renderDiscardPile() {
+  const pile = document.getElementById('discard-pile');
+  pile.innerHTML = '';
+  if (state.absentSet.size === 0) {
+    const empty = document.createElement('span');
+    empty.style.color = 'var(--void-4)';
+    empty.style.fontSize = '0.65rem';
+    empty.textContent = 'none confirmed yet';
+    pile.appendChild(empty);
+    return;
+  }
+  state.absentSet.forEach(id => {
+    const token = document.createElement('span');
+    token.className = 'discard-token';
+    token.textContent = STATIONS[id].key;
+    pile.appendChild(token);
+  });
+}
+
+function updateStatus() {
+  const remaining = MAX_PROBES - state.probeHistory.length;
+  const el = document.getElementById('guesses-left');
+  if (state.gameOver) {
+    el.textContent = 'sequence resolved';
+    el.style.color = 'var(--muted)';
+  } else {
+    el.textContent = `${remaining} probe${remaining !== 1 ? 's' : ''} remaining`;
+    el.style.color = remaining <= 3 ? 'var(--hehku)' : 'var(--kaiku)';
+  }
+}
+
+// ── TERMINAL ─────────────────────────────────────────────────────────────────
+
+function clearTerminal() {
+  document.getElementById('terminal').innerHTML = '';
+}
+
+function printLine(text, cls = 'dim') {
+  const terminal = document.getElementById('terminal');
+  const line = document.createElement('div');
+  line.className = `terminal-line ${cls}`;
+  line.textContent = text;
+  terminal.appendChild(line);
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+
+newGame();
+</script>
+</body>
+</html>

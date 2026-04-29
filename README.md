@@ -14,8 +14,6 @@ The novel witnesses rather than judges. Every character knows something incomple
 
 The music is in F# Phrygian. It has a death whistle in it. The flute arrives after.
 
-Enter at [project documentation](CLAUDE_kaamos.md) if you need context. But the point is not to need it.
-
 ---
 
 *Eerikki muistaa. The Silence remains.*
