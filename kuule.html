@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="James McGill">
+  <meta name="copyright" content="Copyright © McGill Enterprises 2026. All rights reserved.">
+  <title>kuule — kaamos</title>
+  <style>
+    /* ─── PALETTE ──────────────────────────────────────────────────────────── */
+
+    :root {
+      --bg:           #0c0c0c;
+      --bg-raised:    #141210;
+      --bg-inset:     #181614;
+      --border-dim:   #201e18;
+      --border:       #2e2418;
+
+      --amber:        #f0a030;
+      --amber-mid:    #9a6820;
+      --amber-dim:    #5a3810;
+      --amber-ghost:  #3a2010;
+
+      --violet:       #702890;
+      --violet-mid:   #4a1858;
+      --violet-dim:   #280d30;
+
+      --green:        #90c830;
+      --danger:       #e83820;
+
+      --text:         #dfd0b0;
+      --text-sub:     #8a7a60;
+      --text-muted:   #4a4030;
+
+      --font-mono:    'Courier New', Courier, monospace;
+      --pulse:        6.67s;
+    }
+
+    /* Dev theme: slightly elevated background, brighter type */
+    html[data-theme="dev"] {
+      --bg:        #141210;
+      --bg-raised: #1c1a16;
+      --bg-inset:  #201e18;
+    }
+
+    /* ─── RESET ────────────────────────────────────────────────────────────── */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 2.5rem;
+      gap: 1rem;
+    }
+
+    /* ─── HEADER ───────────────────────────────────────────────────────────── */
+
+    .page-header {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .wordmark {
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      text-transform: lowercase;
+      color: var(--amber);
+      animation: hpulse var(--pulse) ease-in-out infinite;
+    }
+
+    .dev-readout {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      min-width: 4ch;
+      text-align: right;
+    }
+
+    @keyframes hpulse {
+      0%, 100% { opacity: 0.35; }
+      50%       { opacity: 1.0;  }
+    }
+
+    /* ─── CANVAS ───────────────────────────────────────────────────────────── */
+
+    .canvas-wrap {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-dim);
+      line-height: 0;
+    }
+
+    canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      cursor: pointer;
+    }
+
+    canvas.watching { cursor: default; }
+
+    /* ─── STATUS ───────────────────────────────────────────────────────────── */
+
+    .status-line {
+      width: 100%;
+      max-width: 560px;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      min-height: 1em;
+      text-align: center;
+      text-transform: lowercase;
+    }
+
+    .status-line.alert  { color: var(--danger); }
+    .status-line.violet { color: var(--violet); }
+    .status-line.ready  { color: var(--amber);  opacity: 0.6; }
+
+    /* ─── GLYPH TRAY ───────────────────────────────────────────────────────── */
+
+    .glyph-wrap {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.25rem;
+    }
+
+    .glyph-label {
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .glyph-tray {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+      min-height: 58px;
+      padding: 0.4rem;
+      background: var(--bg-raised);
+      border: 1px solid var(--border-dim);
+      align-items: flex-start;
+    }
+
+    .glyph-tile {
+      width: 44px;
+      height: 52px;
+      background: var(--bg-inset);
+      border: 1px solid var(--amber-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      position: relative;
+      transition: border-color 0.5s ease, box-shadow 0.5s ease;
+    }
+
+    .glyph-tile.fresh {
+      border-color: var(--amber-mid);
+      box-shadow: 0 0 10px rgba(240,160,48,0.15);
+    }
+
+    .glyph-sprite {
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      width: 28px;
+      height: 28px;
+    }
+
+    .glyph-key {
+      font-size: 7px;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .glyph-n {
+      position: absolute;
+      top: 2px;
+      right: 3px;
+      font-size: 6px;
+      color: var(--text-muted);
+      opacity: 0.45;
+    }
+
+    .tray-empty {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      align-self: center;
+      padding: 0 0.25rem;
+    }
+
+    /* ─── LOG ──────────────────────────────────────────────────────────────── */
+
+    .log-line {
+      width: 100%;
+      max-width: 560px;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      text-align: right;
+      min-height: 1em;
+      transition: color 0.6s ease;
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────────────────────────────── */
+
+    @media (max-width: 600px) {
+      body { padding: 1rem 0.75rem 2rem; }
+      .glyph-tile { width: 40px; height: 48px; }
+      .glyph-char { font-size: 18px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <span class="wordmark">kuule</span>
+  <span class="dev-readout" id="dev-readout"></span>
+</header>
+
+<div class="canvas-wrap">
+  <canvas id="grid" width="540" height="540"></canvas>
+</div>
+
+<div class="status-line" id="status"></div>
+
+<div class="glyph-wrap">
+  <span class="glyph-label">sequence record</span>
+  <div class="glyph-tray" id="glyph-tray">
+    <span class="tray-empty" id="tray-empty">—</span>
+  </div>
+</div>
+
+<div class="log-line" id="log-line"></div>
+
+<script>
+
+// ─── DEV MODE ──────────────────────────────────────────────────────────────
+
+(function () {
+  const p = new URLSearchParams(location.search);
+  if (p.get('dev') === '1') sessionStorage.setItem('kaamos-dev', '1');
+  if (p.get('dev') === '0') sessionStorage.removeItem('kaamos-dev');
+  if (sessionStorage.getItem('kaamos-dev') === '1')
+    document.documentElement.setAttribute('data-theme', 'dev');
+})();
+
+const DEV = document.documentElement.getAttribute('data-theme') === 'dev';
+
+// ─── HEX MATH ──────────────────────────────────────────────────────────────
+
+const DIR = [
+  {q:1,r:-1,s:0}, {q:1,r:0,s:-1}, {q:0,r:1,s:-1},
+  {q:-1,r:1,s:0}, {q:-1,r:0,s:1}, {q:0,r:-1,s:1},
+];
+
+const hexKey       = h => `${h.q},${h.r},${h.s}`;
+const hexAdd       = (a,b) => ({q:a.q+b.q, r:a.r+b.r, s:a.s+b.s});
+const hexNeighbors = h => DIR.map(d => hexAdd(h, d));
+
+function hexToPixel(h, size, origin) {
+  return {
+    x: origin.x + size * (3/2 * h.q),
+    y: origin.y + size * (Math.sqrt(3)/2 * h.q + Math.sqrt(3) * h.r),
+  };
+}
+
+function pixelToHex(px, py, size, origin) {
+  const x = (px - origin.x) / size;
+  const y = (py - origin.y) / size;
+  const q = (2/3) * x;
+  const r = (-1/3) * x + (Math.sqrt(3)/3) * y;
+  const s = -q - r;
+  return hexRound({q, r, s});
+}
+
+function hexRound(h) {
+  let q = Math.round(h.q), r = Math.round(h.r), s = Math.round(h.s);
+  const dq = Math.abs(q-h.q), dr = Math.abs(r-h.r), ds = Math.abs(s-h.s);
+  if      (dq > dr && dq > ds) q = -r-s;
+  else if (dr > ds)            r = -q-s;
+  else                         s = -q-r;
+  return {q, r, s};
+}
+
+function bfsPath(start, end, valid) {
+  const sk = hexKey(start), ek = hexKey(end);
+  if (sk === ek) return [start];
+  const queue = [[start]], visited = new Set([sk]);
+  while (queue.length) {
+    const path = queue.shift();
+    const cur  = path[path.length - 1];
+    for (const n of hexNeighbors(cur)) {
+      const nk = hexKey(n);
+      if (nk === ek) return [...path, n];
+      if (!visited.has(nk) && valid.has(nk)) {
+        visited.add(nk);
+        queue.push([...path, n]);
+      }
+    }
+  }
+  return [start, end];
+}
+
+// ─── MAP ───────────────────────────────────────────────────────────────────
+
+const HILJAISUUS = {q:0, r:0, s:0};
+
+// sem: [leftArmDeg, rightArmDeg] — angles from 12 o'clock, clockwise.
+// These are real flag semaphore positions for letters A–H.
+// The player is reading a cipher and doesn't know it yet.
+
+const STATIONS = [
+  { key:'POH', name:'Pohja',  hex:{q:2,  r:-1, s:-1}, sem:[315,  90] }, // A
+  { key:'VÄY', name:'Väylä',  hex:{q:1,  r:-2, s:1},  sem:[270,  90] }, // B
+  { key:'GRI', name:'Grilli', hex:{q:-1, r:-1, s:2},  sem:[225,  90] }, // C
+  { key:'KAA', name:'Kaamos', hex:{q:-2, r:1,  s:1},  sem:[180,  90] }, // D
+  { key:'AAV', name:'Aava',   hex:{q:-1, r:2,  s:-1}, sem:[ 90, 135] }, // E
+  { key:'HEH', name:'Hehku',  hex:{q:1,  r:1,  s:-2}, sem:[ 90, 180] }, // F
+  { key:'SOL', name:'Solmu',  hex:{q:2,  r:-2, s:0},  sem:[ 90, 225] }, // G
+  { key:'TAI', name:'Taivas', hex:{q:0,  r:-2, s:2},  sem:[ 90, 270] }, // H
+];
+
+const stationByKey = {};
+STATIONS.forEach(s => { stationByKey[hexKey(s.hex)] = s; });
+
+const allHexes = new Set([hexKey(HILJAISUUS)]);
+STATIONS.forEach(s => allHexes.add(hexKey(s.hex)));
+for (let q = -2; q <= 2; q++) {
+  for (let r = -2; r <= 2; r++) {
+    const s = -q - r;
+    if (Math.abs(s) <= 2) allHexes.add(hexKey({q, r, s}));
+  }
+}
+
+// ─── SEMAPHORE RENDERER ────────────────────────────────────────────────────
+// Each glyph is two arm angles drawn on a small canvas.
+// Angles in degrees from 12 o'clock, clockwise. Pure geometry, no font.
+
+function drawSemaphore(canvas, leftDeg, rightDeg, color) {
+  const ctx  = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2;
+  const ARM = Math.min(w, h) * 0.44;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 2;
+  ctx.lineCap     = 'round';
+
+  function arm(deg) {
+    const rad = (deg - 90) * Math.PI / 180;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + ARM * Math.cos(rad), cy + ARM * Math.sin(rad));
+    ctx.stroke();
+  }
+
+  arm(leftDeg);
+  arm(rightDeg);
+
+  // Centre point
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ─── HIGHLIGHT — hold-then-decay ───────────────────────────────────────────
+// Hex illuminates for HOLD ms, then fades linearly over FADE ms.
+
+const HL = { hex: null, t0: 0, HOLD: 900, FADE: 500 };
+
+function hlSet(hex) { HL.hex = hex; HL.t0 = Date.now(); }
+
+function hlAlpha() {
+  if (!HL.hex) return 0;
+  const el = Date.now() - HL.t0;
+  if (el < HL.HOLD) return 1.0;
+  const f = (el - HL.HOLD) / HL.FADE;
+  if (f >= 1.0) { HL.hex = null; return 0; }
+  return 1.0 - f;
+}
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+
+// Finnish numbers — quietly taught, never announced
+const FI = [
+  'nolla', 'yksi', 'kaksi', 'kolme', 'neljä',
+  'viisi', 'kuusi', 'seitsemän', 'kahdeksan', 'yhdeksän',
+  'kymmenen', 'yksitoista', 'kaksitoista', 'kolmetoista', 'neljätoista',
+  'viisitoista', 'kuusitoista', 'seitsemäntoista', 'kahdeksantoista', 'yhdeksäntoista',
+];
+
+const STATE = {
+  phase:       'idle',
+  sequence:    [],
+  progress:    0,
+  round:       0,
+  trail:       [],
+  glyphs:      [],
+  disruptions: 0,
+  playerHex:   STATIONS[Math.floor(Math.random() * STATIONS.length)].hex,
+};
+
+// ─── CANVAS ────────────────────────────────────────────────────────────────
+
+const canvas = document.getElementById('grid');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const ORIGIN = {x: W/2, y: H/2};
+const HEX_SIZE = 44;
+
+function hexCorners(center, size) {
+  const c = [];
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI / 180 * (60 * i);
+    c.push({x: center.x + size * Math.cos(a), y: center.y + size * Math.sin(a)});
+  }
+  return c;
+}
+
+function fillHex(hex, fill, stroke, lw) {
+  const center  = hexToPixel(hex, HEX_SIZE, ORIGIN);
+  const corners = hexCorners(center, HEX_SIZE - 2);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < 6; i++) ctx.lineTo(corners[i].x, corners[i].y);
+  ctx.closePath();
+  ctx.fillStyle   = fill;
+  ctx.fill();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth   = lw || 1;
+  ctx.stroke();
+}
+
+function render() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Void grid tiles
+  allHexes.forEach(k => {
+    const [q, r, s] = k.split(',').map(Number);
+    fillHex({q, r, s}, '#0d0d12', '#18182a', 1);
+  });
+
+  // Trail (BFS path, faint violet)
+  if (STATE.trail.length > 1) {
+    ctx.save();
+    for (let i = 1; i < STATE.trail.length; i++) {
+      const a = hexToPixel(STATE.trail[i-1], HEX_SIZE, ORIGIN);
+      const b = hexToPixel(STATE.trail[i],   HEX_SIZE, ORIGIN);
+      const alpha = 0.06 + (i / STATE.trail.length) * 0.22;
+      ctx.strokeStyle = `rgba(112,40,144,${alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Hiljaisuus — violet pulse at 6.67s
+  const p = 0.5 + 0.5 * Math.sin(Date.now() / (6670 / (2 * Math.PI)));
+  fillHex(
+    HILJAISUUS,
+    `rgba(28,0,48,${0.8 + p * 0.2})`,
+    `rgba(112,40,144,${0.25 + p * 0.75})`,
+    2
+  );
+  const hc = hexToPixel(HILJAISUUS, HEX_SIZE, ORIGIN);
+  ctx.fillStyle   = `rgba(112,40,144,${0.2 + p * 0.5})`;
+  ctx.font        = '8px Courier New';
+  ctx.textAlign   = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('hiljaisuus', hc.x, hc.y);
+
+  // Station hexes
+  const hlA = hlAlpha();
+  const hlK = HL.hex ? hexKey(HL.hex) : null;
+
+  STATIONS.forEach(s => {
+    const k        = hexKey(s.hex);
+    const isHL     = k === hlK && hlA > 0;
+    const isPlayer = k === hexKey(STATE.playerHex);
+
+    let fill   = '#0f0f1e';
+    let stroke = '#22224a';
+    let lw     = 1;
+
+    if (isHL) {
+      fill   = `rgba(80,50,12,${0.3 + hlA * 0.6})`;
+      stroke = `rgba(240,160,48,${0.4 + hlA * 0.6})`;
+      lw     = 1 + hlA * 1.5;
+    } else if (isPlayer) {
+      fill   = '#0e1820';
+      stroke = '#3a7890';
+      lw     = 1.5;
+    }
+
+    fillHex(s.hex, fill, stroke, lw);
+
+    // Radial glow when highlighted
+    if (isHL && hlA > 0.05) {
+      const center  = hexToPixel(s.hex, HEX_SIZE, ORIGIN);
+      const corners = hexCorners(center, HEX_SIZE - 2);
+      const grad = ctx.createRadialGradient(
+        center.x, center.y, 0,
+        center.x, center.y, HEX_SIZE * 0.8
+      );
+      grad.addColorStop(0, `rgba(240,160,48,${hlA * 0.3})`);
+      grad.addColorStop(1, 'rgba(240,160,48,0)');
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(corners[0].x, corners[0].y);
+      for (let i = 1; i < 6; i++) ctx.lineTo(corners[i].x, corners[i].y);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Label
+    const center = hexToPixel(s.hex, HEX_SIZE, ORIGIN);
+    const keyColor = isHL
+      ? `rgba(240,160,48,${0.55 + hlA * 0.45})`
+      : isPlayer ? '#4888a0' : '#2a2858';
+    ctx.fillStyle    = keyColor;
+    ctx.font         = '9px Courier New';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.key, center.x, center.y + (DEV ? -5 : 0));
+
+    if (DEV) {
+      ctx.fillStyle    = `rgba(74,64,48,${isHL ? 0.9 : 0.6})`;
+      ctx.font         = '7px Courier New';
+      ctx.fillText(s.name, center.x, center.y + 6);
+    }
+  });
+
+  requestAnimationFrame(render);
+}
+
+// ─── GAME LOGIC ────────────────────────────────────────────────────────────
+
+function stepDelay() {
+  // 1300ms at round 0, decreasing 35ms per round, floor 650ms
+  return Math.max(650, 1300 - STATE.round * 35);
+}
+
+function newRound() {
+  STATE.phase    = 'watching';
+  STATE.progress = 0;
+  canvas.classList.add('watching');
+
+  // Extend sequence by one
+  const pick = STATIONS[Math.floor(Math.random() * STATIONS.length)];
+  STATE.sequence.push(pick.hex);
+
+  setStatus('');
+  devReadout();
+  playSequence();
+}
+
+function playSequence() {
+  const delay = stepDelay();
+  let step = 0;
+
+  function showNext() {
+    if (step >= STATE.sequence.length) {
+      // All steps shown — hand to player
+      setTimeout(() => {
+        STATE.phase = 'input';
+        canvas.classList.remove('watching');
+        setStatus('');
+      }, Math.round(delay * 0.5));
+      return;
+    }
+    hlSet(STATE.sequence[step]);
+    step++;
+    setTimeout(showNext, delay);
+  }
+
+  // Initial pause before first step
+  setTimeout(showNext, Math.round(delay * 0.7));
+}
+
+function handleInput(hex) {
+  if (STATE.phase !== 'input') return;
+
+  const target = STATE.sequence[STATE.progress];
+
+  // BFS trail
+  const path = bfsPath(STATE.playerHex, hex, allHexes);
+  STATE.trail.push(...path.slice(1));
+  if (STATE.trail.length > 40) STATE.trail.splice(0, STATE.trail.length - 40);
+  STATE.playerHex = hex;
+
+  const correct = hexKey(hex) === hexKey(target);
+
+  if (correct) {
+    hlSet(hex);
+    STATE.progress++;
+
+    if (STATE.progress === STATE.sequence.length) {
+      // Round complete
+      STATE.phase = 'idle';
+      STATE.round++;
+      canvas.classList.remove('watching');
+
+      const newStation = stationByKey[hexKey(STATE.sequence[STATE.sequence.length - 1])];
+      if (newStation) pushGlyph(newStation);
+
+      setStatus('');
+      devReadout();
+      setTimeout(newRound, 1000);
+    }
+  } else {
+    // Disruption — reset sequence, wipe tray, log quietly in Finnish
+    STATE.phase = 'idle';
+    canvas.classList.add('watching');
+    STATE.disruptions++;
+
+    const word = FI[Math.min(STATE.disruptions, FI.length - 1)];
+    document.getElementById('log-line').textContent = word + '.';
+
+    setTimeout(() => {
+      STATE.sequence  = [];
+      STATE.trail     = [];
+      STATE.glyphs    = [];
+      STATE.playerHex = STATIONS[Math.floor(Math.random() * STATIONS.length)].hex;
+
+      const tray = document.getElementById('glyph-tray');
+      tray.innerHTML = '<span class="tray-empty" id="tray-empty">—</span>';
+
+      setStatus('');
+      devReadout();
+      setTimeout(newRound, 500);
+    }, 900);
+  }
+}
+
+// ─── GLYPH TRAY ────────────────────────────────────────────────────────────
+
+function pushGlyph(station) {
+  STATE.glyphs.push({
+    key: station.key,
+    sem: station.sem,
+    n:   STATE.glyphs.length + 1,
+  });
+  renderTray();
+}
+
+function renderTray() {
+  const tray  = document.getElementById('glyph-tray');
+  const empty = document.getElementById('tray-empty');
+  if (empty) empty.remove();
+
+  tray.innerHTML = '';
+
+  STATE.glyphs.forEach((g, i) => {
+    const fresh = i === STATE.glyphs.length - 1;
+    const tile  = document.createElement('div');
+    tile.className = 'glyph-tile' + (fresh ? ' fresh' : '');
+
+    const num = document.createElement('span');
+    num.className   = 'glyph-n';
+    num.textContent = g.n;
+
+    // Semaphore sprite canvas
+    const sprite = document.createElement('canvas');
+    sprite.className = 'glyph-sprite';
+    sprite.width  = 28;
+    sprite.height = 28;
+    drawSemaphore(sprite, g.sem[0], g.sem[1], '#f0a030');
+
+    const key = document.createElement('span');
+    key.className   = 'glyph-key';
+    key.textContent = g.key;
+
+    tile.appendChild(num);
+    tile.appendChild(sprite);
+    tile.appendChild(key);
+    tray.appendChild(tile);
+
+    if (fresh) {
+      setTimeout(() => tile.classList.remove('fresh'), 2500);
+    }
+  });
+}
+
+// ─── UI HELPERS ────────────────────────────────────────────────────────────
+
+function setStatus(text, cls) {
+  const el = document.getElementById('status');
+  el.textContent = text;
+  el.className   = 'status-line' + (cls ? ` ${cls}` : '');
+}
+
+function devReadout() {
+  if (!DEV) return;
+  const el = document.getElementById('dev-readout');
+  el.textContent = STATE.sequence.length ? `seq ${STATE.sequence.length}` : '';
+}
+
+// ─── INPUT ─────────────────────────────────────────────────────────────────
+
+canvas.addEventListener('click', e => {
+  if (STATE.phase !== 'input') return;
+  const rect   = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top)  * scaleY;
+  const hex = pixelToHex(x, y, HEX_SIZE, ORIGIN);
+  if (!stationByKey[hexKey(hex)]) return;  // only station hexes
+  handleInput(hex);
+});
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+
+render();
+setTimeout(newRound, 1500);
+
+</script>
+</body>
+</html>
