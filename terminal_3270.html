@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KAAMOS — 3270 SPECIMEN</title>
+<style>
+  :root {
+    --void:       #070711;
+    --kaiku:      #c8a050;
+    --hiljaisuus: #8030c0;
+    --hehku:      #c85020;
+    --pohja:      #3030a0;
+    --asema:      #40c080;
+
+    /* 3270 field colors — mapped onto Kaamos palette */
+    --col-label:      #40c080;   /* protected labels       — asema green   */
+    --col-input:      #c8c8c8;   /* unprotected fields     — neutral        */
+    --col-header:     #e0e080;   /* intensified headers    — yellow         */
+    --col-data:       #6080e0;   /* data values            — pohja blue     */
+    --col-alert:      #c85020;   /* alerts / warnings      — hehku ember    */
+    --col-turquoise:  #40c8c0;   /* selection / highlight  — turquoise      */
+    --col-pink:       #c060c0;   /* secondary data         — pink           */
+    --col-silence:    #8030c0;   /* the Silence            — violet (unrenderable in true 3270) */
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--void);
+    color: var(--col-label);
+    font-family: 'IBM Plex Mono', 'Courier New', 'Lucida Console', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 0;
+  }
+
+  .screen {
+    width: 80ch;
+    height: 24em;
+    margin: 2em auto;
+    border: 1px solid #1a1a2e;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(64, 192, 128, 0.08);
+  }
+
+  .row {
+    height: 1em;
+    line-height: 1em;
+    white-space: pre;
+    padding: 0;
+  }
+
+  /* Field attribute classes */
+  .hdr  { color: var(--col-header);    font-weight: bold; }
+  .lbl  { color: var(--col-label);     }
+  .lbl2 { color: var(--col-label);     opacity: 0.6; }
+  .dat  { color: var(--col-data);      }
+  .inp  { color: var(--col-input);     border-bottom: 1px solid #404060; }
+  .alt  { color: var(--col-alert);     }
+  .tq   { color: var(--col-turquoise); }
+  .pk   { color: var(--col-pink);      }
+  .sil  { color: var(--col-silence);   }
+  .dim  { color: #2a2a40;              }  /* void — absent field */
+  .inv  { background: var(--col-label); color: var(--void); } /* reverse video */
+  .inv2 { background: var(--col-header); color: var(--void); }
+
+  /* Underlined input fields */
+  .field {
+    display: inline-block;
+    border-bottom: 1px solid #404860;
+    color: var(--col-turquoise);
+    min-width: 1ch;
+  }
+
+  /* Blinking cursor */
+  .cursor {
+    display: inline-block;
+    background: var(--col-turquoise);
+    width: 1ch;
+    animation: blink 1.06s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Separator line */
+  .sep { color: #1e2040; }
+
+  /* PF key bar */
+  .pfbar {
+    background: #0d0d1a;
+    border-top: 1px solid #1e2040;
+  }
+
+  /* Coin meter */
+  .filled { color: var(--col-label); }
+  .empty  { color: #1e2040; }
+
+  /* Counter item — the thing on the counter when you've earned it */
+  .counter {
+    color: var(--col-header);
+    font-weight: bold;
+  }
+
+  /* The unrenderable item */
+  .unrenderable {
+    color: var(--col-silence);
+    opacity: 0.35;
+    letter-spacing: 0.05ch;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+
+<!-- ROW 01 — system header bar -->
+<div class="row"><span class="inv"> KAAMOS TRANSIT AUTHORITY — MARKET INTERFACE                    </span><span class="inv2"> 3270-K </span></div>
+
+<!-- ROW 02 — station / stardate -->
+<div class="row"><span class="lbl2"> </span><span class="lbl">STATION  </span><span class="dat">USHER REACH                    </span><span class="lbl">STARDATE  </span><span class="dat">47291.3   </span><span class="lbl">SESSION </span><span class="dat">0047</span></div>
+
+<!-- ROW 03 — divider -->
+<div class="row"><span class="sep"> ────────────────────────────────────────────────────────────────────────────── </span></div>
+
+<!-- ROW 04 — stationhand record header -->
+<div class="row"><span class="lbl"> STATIONHAND RECORD</span></div>
+
+<!-- ROW 05 — route id -->
+<div class="row"><span class="lbl">  LAST ROUTE    </span><span class="tq">VÄY — KAA — SOL — TAI</span><span class="lbl">                        PROBES USED  </span><span class="dat">04 / 10</span></div>
+
+<!-- ROW 06 — coin balances -->
+<div class="row"><span class="lbl">  SIMON COIN    </span><span class="filled">████</span><span class="empty">░</span><span class="lbl">  4 / 5          </span><span class="lbl">MM COIN        </span><span class="filled">█████</span><span class="lbl">  5 / 5</span></div>
+
+<!-- ROW 07 — bonus status -->
+<div class="row"><span class="lbl">  VOID EVENTS   </span><span class="dat">0</span><span class="lbl">                          AMPLIFICATION  </span><span class="tq">*** ACTIVE ***</span></div>
+
+<!-- ROW 08 — divider -->
+<div class="row"><span class="sep"> ────────────────────────────────────────────────────────────────────────────── </span></div>
+
+<!-- ROW 09 — market header -->
+<div class="row"><span class="lbl"> MARKET</span></div>
+
+<!-- ROW 10 — column headers -->
+<div class="row"><span class="lbl">  SEL  ITEM                              COST              STATUS</span></div>
+
+<!-- ROW 11 — item 1 -->
+<div class="row"><span class="lbl">   </span><span class="field">_</span><span class="lbl">   ROUTE EXTENSION (+1 PROBE)         </span><span class="dat">2 MM              </span><span class="tq">AVAILABLE</span></div>
+
+<!-- ROW 12 — item 2 -->
+<div class="row"><span class="lbl">   </span><span class="field">_</span><span class="lbl">   PATTERN FRAGMENT                    </span><span class="dat">3 SIM             </span><span class="tq">AVAILABLE</span></div>
+
+<!-- ROW 13 — item 3 -->
+<div class="row"><span class="lbl">   </span><span class="field">_</span><span class="lbl">   VOID CHART UPDATE                   </span><span class="dat">2 MM + 1 SIM      </span><span class="tq">AVAILABLE</span></div>
+
+<!-- ROW 14 — counter item — only visible with max both coins -->
+<div class="row"><span class="lbl">   </span><span class="field">_</span><span class="lbl">   </span><span class="counter">DEEP CHANNEL ACCESS                 </span><span class="dat">MAX BOTH          </span><span class="counter">ON COUNTER</span></div>
+
+<!-- ROW 15 — vowel -->
+<div class="row"><span class="lbl">   </span><span class="field">_</span><span class="lbl">   </span><span class="pk">VOWEL                               </span><span class="dat">4 MM              </span><span class="tq">AVAILABLE</span></div>
+
+<!-- ROW 16 — unrenderable item -->
+<div class="row"><span class="lbl">   </span><span class="field"> </span><span class="lbl">   </span><span class="unrenderable">▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ ▒▒▒▒▒▒▒▒▒▒</span></div>
+
+<!-- ROW 17 — divider -->
+<div class="row"><span class="sep"> ────────────────────────────────────────────────────────────────────────────── </span></div>
+
+<!-- ROW 18 — selection prompt -->
+<div class="row"><span class="lbl"> ENTER SELECTION CODES. TAB BETWEEN FIELDS. LEAVE BLANK TO SKIP.</span></div>
+
+<!-- ROW 19 — input line -->
+<div class="row"><span class="lbl"> CONFIRM  </span><span class="field">_</span><span class="lbl">                                                               </span></div>
+
+<!-- ROW 20 — spacer -->
+<div class="row"></div>
+
+<!-- ROW 21 — system message area -->
+<div class="row"><span class="tq"> AMPLIFICATION BONUS ACTIVE. DEEP CHANNEL ACCESS AVAILABLE. THE COUNTER DOES NOT ADVERTISE IT.</span></div>
+
+<!-- ROW 22 — spacer / second message line -->
+<div class="row"><span class="lbl2"> THE SHOPKEEPER KNOWS HOW YOU TRAVELED.                                        </span></div>
+
+<!-- ROW 23 — PF key bar line 1 -->
+<div class="row pfbar"><span class="lbl2"> PF1=HELP    PF2=RECORD    PF3=EXIT    PF4=VOID MAP    PF6=CONFIRM    PF9=CLEAR </span></div>
+
+<!-- ROW 24 — PF key bar line 2 -->
+<div class="row pfbar"><span class="lbl2"> PF12=CANCEL                                            ENTER=SUBMIT           </span></div>
+
+</div>
+</body>
+</html>
