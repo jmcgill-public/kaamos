@@ -6,6 +6,10 @@
 
 ---
 
+[rebraining.org/kuule](https://rebraining.org/kuule)
+
+---
+
 This is a novel, a game, a music project, and a cosmological framework operating in the same semantic space.
 
 The game teaches you the language without announcing that it's doing so. You complete sequences. Glyphs accumulate. You learn to read the world before you read about it.
@@ -17,3 +21,11 @@ The music is in F# Phrygian. It has a death whistle in it. The flute arrives aft
 ---
 
 *Eerikki muistaa. The Silence remains.*
+
+---
+
+## v0.1 — on the grilli
+
+**Kuule** — the Simon loop. Sequences. Glyph accumulation. Finnish numbers in the log if you're paying attention. Might be playable at [rebraining.org/kuule](https://rebraining.org/kuule).
+
+The Mastermind stage, the Hunt, and Wa-Tor are in the fire. This menu changes.

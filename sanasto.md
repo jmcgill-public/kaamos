@@ -4,6 +4,15 @@
 
 ---
 
+**on the grilli** *(semantic version marker)*
+
+The grilli menu in the README is the version. When the menu changes, the version changes.
+What's smoking is what's shipping or nearly shipping. What's in the fire isn't on the menu yet.
+
+*v0.1 — Kuule. The Simon loop. Glyphs. Finnish numbers in the log.*
+
+---
+
 **the meaning of the Game of Life**
 
 *Kolme päivää kevättä, yksi päivä kesää, loputon talvi.*
@@ -27,5 +36,14 @@ civilization looks like: simple rules, expendable individuals, patterns that ris
 and collapse between shifts.
 
 Only the Game of Life level in Kaamos will be Wa-Tor.
+
+---
+
+**Tapahtuu. Kaksi kertaa.**
+
+It happens. Twice.
+
+The acknowledgment that requires no explanation. Sent when the thing
+has already happened and there is nothing more to say about it.
 
 ---
